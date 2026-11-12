@@ -12,15 +12,25 @@ export const kafka = new Kafka({
 // unique id and the database ignores duplicates (INSERT ... ON CONFLICT DO NOTHING).
 export const producer = kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
 
-/** Creates our topics if they don't exist yet (3 partitions each). */
+/**
+ * Creates our topics if they don't exist yet (3 partitions each).
+ * Only the MISSING ones are created: asking Kafka to create a topic that already
+ * exists makes kafkajs log a scary (but harmless) "Topic creation errors" ERROR
+ * on every restart.
+ */
 export async function ensureTopics() {
   const admin = kafka.admin();
   await admin.connect();
   try {
-    await admin.createTopics({
-      waitForLeaders: true,
-      topics: Object.values(TOPICS).map((topic) => ({ topic, numPartitions: 3 })),
-    });
+    const existing = new Set(await admin.listTopics());
+    const missing = Object.values(TOPICS).filter((t) => !existing.has(t));
+    if (missing.length) {
+      await admin.createTopics({
+        waitForLeaders: true,
+        topics: missing.map((topic) => ({ topic, numPartitions: 3 })),
+      });
+      console.log(`Created Kafka topics: ${missing.join(", ")}`);
+    }
   } finally {
     await admin.disconnect();
   }
