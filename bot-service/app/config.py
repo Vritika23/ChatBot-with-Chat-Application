@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     chunk_size: int = 1000        # characters per chunk
     chunk_overlap: int = 200      # characters shared between neighbour chunks
     top_k: int = 5                # chunks given to the LLM
-    min_similarity: float = 0.45  # ignore chunks less similar than this (cosine) — tune for your data
+    min_similarity: float = 0.60  # ignore chunks less similar than this (cosine). Measured with gemini-embedding-001 (768-d): relevant 0.66-0.73, unrelated 0.49-0.55
     history_messages: int = 10    # past chat messages sent as context
 
     max_concurrent_chats: int = 8
