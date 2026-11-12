@@ -365,6 +365,21 @@ button { font-family: inherit; }
         }
       }
 
+      .uploadNote {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        background: #eef2ff;
+        color: $dark;
+        border-top: 1px solid $light;
+        &.ok { background: #ecfdf5; }
+        &.error { background: #fef2f2; color: #b91c1c; }
+        button { margin-left: auto; border: none; background: none; cursor: pointer; color: gray; }
+      }
+
       .input {
         height: 56px;
         flex-shrink: 0;

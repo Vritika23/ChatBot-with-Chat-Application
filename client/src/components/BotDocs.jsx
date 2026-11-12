@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
+import { api, uploadBotDocument } from "../lib/api";
 
 /** Upload / list / delete the documents the bot can answer from (RAG). */
 export default function BotDocs() {
@@ -10,6 +10,9 @@ export default function BotDocs() {
   const refresh = () => api("/bot/documents").then(setDocs).catch((e) => setMsg(e.message));
   useEffect(() => {
     refresh();
+    // a document uploaded with the attach button (in the input bar) should appear here too
+    window.addEventListener("botdocs:changed", refresh);
+    return () => window.removeEventListener("botdocs:changed", refresh);
   }, []);
 
   const upload = async (file) => {
@@ -17,11 +20,8 @@ export default function BotDocs() {
     setBusy(true);
     setMsg(`Reading “${file.name}” and creating embeddings…`);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const d = await api("/bot/documents", { method: "POST", form });
+      const d = await uploadBotDocument(file); // also triggers refresh via "botdocs:changed"
       setMsg(`✅ Added ${d.filename} (${d.numPages} page(s), ${d.numChunks} chunks). Ask me about it!`);
-      refresh();
     } catch (e) {
       setMsg(`❌ ${e.message}`);
     } finally {

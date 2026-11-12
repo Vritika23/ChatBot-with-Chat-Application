@@ -18,6 +18,22 @@ export async function api(path, { method = "GET", body, form } = {}) {
   return data;
 }
 
+// ---------- documents the bot can read (RAG) ----------
+
+export const DOC_ACCEPT = ".pdf,.txt,.md,application/pdf,text/plain,text/markdown";
+export const isDocument = (file) =>
+  /\.(pdf|txt|md)$/i.test(file?.name || "") ||
+  ["application/pdf", "text/plain", "text/markdown"].includes(file?.type);
+
+/** Uploads a document for the bot and tells any open "My documents" panel to refresh. */
+export async function uploadBotDocument(file) {
+  const form = new FormData();
+  form.append("file", file);
+  const doc = await api("/bot/documents", { method: "POST", form });
+  window.dispatchEvent(new Event("botdocs:changed"));
+  return doc;
+}
+
 export async function uploadImage(file) {
   const form = new FormData();
   form.append("file", file);
