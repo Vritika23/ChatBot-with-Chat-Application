@@ -24,4 +24,5 @@ export const TOPICS = {
   CHAT_MESSAGES: "chat.messages", // every message a user sends
   BOT_STREAM: "bot.stream",       // live "typing" chunks of a bot reply
   BOT_REPLIES: "bot.replies",     // the final, complete bot reply
+  DEAD_LETTERS: "dead.letters",   // events the persistence worker can never save (with the reason)
 };
