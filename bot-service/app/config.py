@@ -18,8 +18,14 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"  # "gemini" or "fake" (offline tests)
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.8-flash"
+    # Comma-separated backup chat models, used when the main one is overloaded (503) or times out
+    gemini_fallback_models: str = ""
     embedding_model: str = "gemini-embedding-001"
     embedding_dim: int = 768
+    # Real-API safety nets: Gemini sometimes answers 503 "high demand" / 429 "rate limit",
+    # or simply takes minutes. Retry those, and never wait forever on one request.
+    llm_timeout_s: float = 60.0   # per HTTP request to Gemini
+    llm_retries: int = 3          # attempts PER MODEL for 429 / 5xx errors (then the next fallback model)
 
     bot_user_id: str = "chatbot"
     bot_sql_tables: str = "products,orders"
@@ -32,6 +38,10 @@ class Settings(BaseSettings):
     history_messages: int = 10    # past chat messages sent as context
 
     max_concurrent_chats: int = 8
+
+    @property
+    def fallback_models(self) -> list[str]:
+        return [m.strip() for m in self.gemini_fallback_models.split(",") if m.strip()]
 
     @property
     def sql_tables(self) -> list[str]:

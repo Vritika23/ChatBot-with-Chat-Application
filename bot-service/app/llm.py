@@ -9,18 +9,32 @@ FakeLLM needs no internet or key — used in automated tests.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import logging
 import math
 import re
 from typing import AsyncIterator, Protocol
 
 from .config import Settings
 
+log = logging.getLogger("bot.llm")
+
 
 class LLM(Protocol):
     async def embed(self, texts: list[str], task: str) -> list[list[float]]: ...
     async def generate(self, prompt: str, system: str | None = None) -> str: ...
     def stream(self, prompt: str, system: str | None = None) -> AsyncIterator[str]: ...
+
+
+def is_temporary_error(e: BaseException) -> bool:
+    """True for problems that another try (or another model) may fix:
+    rate limits (429), server errors (5xx, e.g. 503 "high demand") and timeouts.
+    A real bug (e.g. 400 bad request, 403 bad key) is NOT temporary."""
+    code = getattr(e, "code", None)
+    if isinstance(code, int) and (code in (408, 429) or code >= 500):
+        return True
+    return isinstance(e, (asyncio.TimeoutError, TimeoutError)) or "Timeout" in type(e).__name__
 
 
 def _normalize(v: list[float]) -> list[float]:
@@ -36,8 +50,22 @@ class GeminiLLM:
         if not s.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY is not set")
         self._types = types
-        self._client = genai.Client(api_key=s.gemini_api_key)
+        self._client = genai.Client(
+            api_key=s.gemini_api_key,
+            http_options=types.HttpOptions(
+                timeout=int(s.llm_timeout_s * 1000),  # the SDK wants milliseconds
+                # Temporary server problems are retried with exponential backoff (1 s, 2 s, 4 s ... max 10 s).
+                retry_options=types.HttpRetryOptions(
+                    attempts=s.llm_retries,
+                    initial_delay=1.0,
+                    max_delay=10.0,
+                    http_status_codes=[408, 429, 500, 502, 503, 504],
+                ),
+            ),
+        )
         self._model = s.gemini_model
+        # Tried in order when the main model is overloaded / times out.
+        self._models = [s.gemini_model] + [m for m in s.fallback_models if m != s.gemini_model]
         self._embed_model = s.embedding_model
         self._dim = s.embedding_dim
 
@@ -58,18 +86,41 @@ class GeminiLLM:
         return self._types.GenerateContentConfig(system_instruction=system, temperature=temperature)
 
     async def generate(self, prompt: str, system: str | None = None) -> str:
-        resp = await self._client.aio.models.generate_content(
-            model=self._model, contents=prompt, config=self._config(system, 0.0)
-        )
-        return resp.text or ""
+        last: BaseException | None = None
+        for model in self._models:
+            try:
+                resp = await self._client.aio.models.generate_content(
+                    model=model, contents=prompt, config=self._config(system, 0.0)
+                )
+                return resp.text or ""
+            except Exception as e:
+                if not is_temporary_error(e):
+                    raise
+                log.warning("Gemini model %s is unavailable (%s) - trying the next one", model, e)
+                last = e
+        raise last  # every model failed
 
     async def stream(self, prompt: str, system: str | None = None) -> AsyncIterator[str]:
-        chunks = await self._client.aio.models.generate_content_stream(
-            model=self._model, contents=prompt, config=self._config(system, 0.3)
-        )
-        async for chunk in chunks:
-            if chunk.text:
-                yield chunk.text
+        last: BaseException | None = None
+        for model in self._models:
+            started = False
+            try:
+                chunks = await self._client.aio.models.generate_content_stream(
+                    model=model, contents=prompt, config=self._config(system, 0.3)
+                )
+                async for chunk in chunks:
+                    if chunk.text:
+                        started = True
+                        yield chunk.text
+                return
+            except Exception as e:
+                # Only switch model BEFORE the first word was sent; switching mid-answer
+                # would glue two different answers together.
+                if started or not is_temporary_error(e):
+                    raise
+                log.warning("Gemini model %s is unavailable (%s) - trying the next one", model, e)
+                last = e
+        raise last  # every model failed
 
 
 class FakeLLM:
