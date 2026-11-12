@@ -55,11 +55,13 @@ class GeminiLLM:
             http_options=types.HttpOptions(
                 timeout=int(s.llm_timeout_s * 1000),  # the SDK wants milliseconds
                 # Temporary server problems are retried with exponential backoff (1 s, 2 s, 4 s ... max 10 s).
+                # 429 (quota) is NOT retried here: the free tier's limit is per DAY, so waiting seconds
+                # doesn't help. A 429 goes straight to the next fallback model instead (see generate/stream).
                 retry_options=types.HttpRetryOptions(
                     attempts=s.llm_retries,
                     initial_delay=1.0,
                     max_delay=10.0,
-                    http_status_codes=[408, 429, 500, 502, 503, 504],
+                    http_status_codes=[408, 500, 502, 503, 504],
                 ),
             ),
         )
