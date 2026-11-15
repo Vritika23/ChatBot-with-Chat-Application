@@ -1,0 +1,26 @@
+{
+  "name": "chat-server",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Socket.IO chat server + Kafka producer/consumer for Let's Chat",
+  "scripts": {
+    "start": "node src/index.js",
+    "worker": "node src/worker.js",
+    "dev": "node --watch --env-file=../.env src/index.js",
+    "dev:worker": "node --watch --env-file=../.env src/worker.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.0.2",
+    "kafkajs": "^2.2.4",
+    "multer": "^2.0.0",
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}

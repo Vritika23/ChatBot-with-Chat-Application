@@ -1,0 +1,432 @@
+$bg: #a7bcff;
+$dark: #2f2d52;
+$side: #3e3c61;
+$mid: #5d5b8d;
+$light: #ddddf7;
+$accent: #8da4f1;
+$online: #4ade80;
+
+@mixin tablet {
+  @media screen and (max-width: 768px) {
+    @content;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: $bg;
+}
+button { font-family: inherit; }
+
+.loading {
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  color: $dark;
+}
+
+/* ---------- login / register ---------- */
+.formContainer {
+  background-color: $bg;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+
+  .formWrapper {
+    background-color: white;
+    padding: 20px 60px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    @include tablet { padding: 20px 24px; }
+
+    .logo { color: $mid; font-weight: bold; font-size: 24px; }
+    .title { color: $mid; font-size: 12px; }
+    .devNote { font-size: 11px; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 6px; }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+
+      input {
+        padding: 15px;
+        border: none;
+        width: 250px;
+        border-bottom: 1px solid $bg;
+        outline: none;
+        &::placeholder { color: rgb(175, 175, 175); }
+      }
+      button {
+        background-color: #7b96ec;
+        color: white;
+        padding: 10px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        &:disabled { opacity: 0.6; cursor: wait; }
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: $accent;
+        font-size: 12px;
+        cursor: pointer;
+        img { width: 32px; }
+      }
+      .error { color: #dc2626; font-size: 12px; max-width: 250px; }
+    }
+    p { color: $mid; font-size: 12px; margin-top: 10px; }
+  }
+}
+
+/* ---------- avatar ---------- */
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: $light;
+  color: $mid;
+  font-weight: 600;
+  display: inline-grid;
+  place-items: center;
+
+  img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .dot {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    width: 26%;
+    height: 26%;
+    border-radius: 50%;
+    background: #9ca3af;
+    border: 2px solid $side;
+    &.online { background: $online; }
+  }
+}
+
+/* ---------- main layout ---------- */
+.home {
+  background-color: $bg;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .container {
+    border: 1px solid white;
+    border-radius: 10px;
+    width: 70%;
+    height: 85%;
+    display: flex;
+    overflow: hidden;
+    @include tablet { width: 100%; height: 100%; border-radius: 0; }
+
+    /* ----- sidebar ----- */
+    .sidebar {
+      flex: 1;
+      min-width: 0;
+      background-color: $side;
+      display: flex;
+      flex-direction: column;
+
+      .navbar {
+        display: flex;
+        align-items: center;
+        background-color: $dark;
+        height: 50px;
+        padding: 10px;
+        justify-content: space-between;
+        color: $light;
+
+        .logo {
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          @include tablet { display: none; }
+        }
+        .conn {
+          width: 8px; height: 8px; border-radius: 50%; background: #f87171;
+          &.on { background: $online; }
+        }
+        .user {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          span { font-size: 14px; }
+          button {
+            background-color: $mid;
+            color: $light;
+            font-size: 10px;
+            border: none;
+            padding: 4px 6px;
+            cursor: pointer;
+          }
+        }
+      }
+
+      .search {
+        border-bottom: 1px solid gray;
+        .searchForm {
+          padding: 10px;
+          input {
+            width: 100%;
+            background-color: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            &::placeholder { color: lightgray; }
+          }
+        }
+        .searchErr { color: lightgray; font-size: 12px; padding: 0 10px 10px; display: block; }
+      }
+
+      .chats { overflow-y: auto; flex: 1; }
+
+      .userChat {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        cursor: pointer;
+        &:hover, &.active { background-color: $dark; }
+
+        .userChatInfo {
+          min-width: 0;
+          span { font-size: 17px; font-weight: 500; }
+          p {
+            font-size: 14px;
+            color: lightgray;
+            margin: 2px 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+    }
+
+    /* ----- chat ----- */
+    .chat {
+      flex: 2;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: $light;
+
+      &.empty { align-items: center; justify-content: center; }
+      .emptyChat { text-align: center; color: $mid; padding: 20px; h2 { margin-top: 0; } }
+
+      .chatInfo {
+        height: 50px;
+        flex-shrink: 0;
+        background-color: $mid;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        color: lightgray;
+
+        .who { display: flex; flex-direction: column; line-height: 1.2; small { font-size: 11px; opacity: 0.8; } }
+      }
+
+      .chatIcons {
+        display: flex;
+        gap: 10px;
+        .docsBtn {
+          background: $dark;
+          color: $light;
+          border: none;
+          border-radius: 6px;
+          padding: 6px 10px;
+          cursor: pointer;
+        }
+      }
+
+      .botDocs {
+        background: white;
+        border-bottom: 1px solid $light;
+        padding: 10px;
+        font-size: 13px;
+        color: $dark;
+        .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .uploadBtn {
+          background: $accent;
+          color: white;
+          padding: 6px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          &.disabled { opacity: 0.6; cursor: wait; }
+        }
+        .docMsg { margin-top: 8px; }
+        ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 120px; overflow-y: auto; }
+        li {
+          display: flex; align-items: center; gap: 6px; padding: 3px 0;
+          small { color: gray; }
+          button { margin-left: auto; border: none; background: none; color: #dc2626; cursor: pointer; }
+        }
+      }
+
+      .messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+
+        .loadOlder, .noMessages {
+          display: block;
+          margin: 0 auto 10px;
+          color: $mid;
+          text-align: center;
+          font-size: 13px;
+        }
+        .loadOlder { background: white; border: none; border-radius: 12px; padding: 4px 12px; cursor: pointer; }
+
+        .message {
+          display: flex;
+          gap: 14px;
+          margin-bottom: 16px;
+
+          .messageInfo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: gray;
+            font-weight: 300;
+            font-size: 11px;
+            min-width: 44px;
+          }
+
+          .messageContent {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+
+            .bubble {
+              background-color: white;
+              padding: 10px 16px;
+              border-radius: 0px 10px 10px 10px;
+              max-width: max-content;
+              white-space: pre-wrap;
+              word-break: break-word;
+            }
+            .bubble.markdown {
+              white-space: normal;
+              p { margin: 0 0 8px; &:last-child { margin-bottom: 0; } }
+              ul, ol { margin: 4px 0 8px; padding-left: 20px; }
+              table { border-collapse: collapse; margin: 6px 0; font-size: 13px; }
+              th, td { border: 1px solid $light; padding: 4px 8px; text-align: left; }
+              code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+            }
+            .bubble.status { color: $mid; font-style: italic; display: flex; align-items: center; gap: 8px; }
+            .cursor { animation: blink 1s steps(1) infinite; color: $mid; }
+
+            img { max-width: 60%; border-radius: 8px; }
+            .failed { color: #dc2626; font-size: 12px; }
+
+            .extra {
+              font-size: 12px;
+              color: $dark;
+              background: rgba(255, 255, 255, 0.6);
+              border-radius: 8px;
+              padding: 6px 10px;
+              max-width: 100%;
+              summary { cursor: pointer; }
+              ol { margin: 6px 0 0; padding-left: 18px; }
+              .snippet { color: gray; font-style: italic; }
+              code { display: block; white-space: pre-wrap; margin-top: 6px; font-size: 11px; }
+            }
+          }
+
+          &.owner {
+            flex-direction: row-reverse;
+            .messageContent {
+              align-items: flex-end;
+              .bubble {
+                background-color: $accent;
+                color: white;
+                border-radius: 10px 0px 10px 10px;
+              }
+            }
+          }
+
+          &.bot:not(:has(.messageInfo)) { margin-left: 58px; }
+        }
+      }
+
+      .uploadNote {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        background: #eef2ff;
+        color: $dark;
+        border-top: 1px solid $light;
+        &.ok { background: #ecfdf5; }
+        &.error { background: #fef2f2; color: #b91c1c; }
+        button { margin-left: auto; border: none; background: none; cursor: pointer; color: gray; }
+      }
+
+      .input {
+        height: 56px;
+        flex-shrink: 0;
+        background-color: white;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        > input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          outline: none;
+          color: $dark;
+          font-size: 16px;
+          &::placeholder { color: lightgray; }
+        }
+        .send {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          .fileChip { font-size: 12px; color: $mid; }
+          label { display: flex; cursor: pointer; }
+          img { height: 24px; }
+          button { border: none; padding: 10px 15px; color: white; background-color: $accent; cursor: pointer; }
+        }
+      }
+    }
+  }
+}
+
+.dots {
+  display: inline-flex;
+  gap: 3px;
+  i {
+    width: 6px; height: 6px; border-radius: 50%; background: $mid;
+    animation: bounce 1.2s infinite ease-in-out;
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+  }
+}
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* phones: show only the chat when one is open */
+@include tablet {
+  .home .container .sidebar { flex: 0 0 38%; }
+}
