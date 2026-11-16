@@ -6,7 +6,7 @@ export const config = {
   databaseUrl:
     process.env.DATABASE_URL ||
     "postgres://chat:chat_dev_password@localhost:5432/chatdb",
-  kafkaBrokers: (process.env.KAFKA_BROKERS || "localhost:9094").split(","),
+  kafkaBrokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
   authMode: process.env.AUTH_MODE || "firebase", // "firebase" | "dev"
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
   clientOrigins: (process.env.CLIENT_ORIGIN || "http://localhost:5173").split(","),

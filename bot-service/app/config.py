@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     # Separate READ-ONLY login used only for the bot's live-data SQL queries
     readonly_database_url: str = "postgresql://bot_reader:bot_reader_dev@localhost:5432/chatdb"
 
-    kafka_brokers: str = "localhost:9094"
+    kafka_brokers: str = "localhost:9092"
     kafka_enabled: bool = True
 
     llm_provider: str = "gemini"  # "gemini" or "fake" (offline tests)
